@@ -1,0 +1,7 @@
+name: teste-dispatch
+on: [workflow_dispatch]
+jobs:
+  oi:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo funcionou
