@@ -23,3 +23,12 @@ Formato: ERRO diagnosticado → CORREÇÃO aplicada → EVIDÊNCIA verificável.
 ## Métrica do trimestre (atual)
 Artefatos fora do controle: **1** (CATALOGO-AGENTES-SDK v1.0, validação humana pendente).
 Meta mínima: 3 validados até 2027-01-11 (libera a regra do Grupo A).
+
+## 2026-10-11 (parte 2) — Decisão de arquitetura: validador CI/CD gate-driven
+- DECISÃO: validador padrão = CI/CD autônomo (gate objetivo), conforme solicitação.
+- IMPLEMENTADO: .github/workflows/validador.yml (contrato presente, campo 5 cheio, links vivos).
+- LOOP: REJECT abre issue auto-invocando /kimi -> fila -> diagnóstico + correção (bundling).
+- CLÁUSULA: gate congelado no contrato; mudança exige WAL + re-aprovação.
+- CAMPO 5 do 03-CONTRATO-CATALOGO: FECHADO (gate CI + exposição pública).
+- Nota honesta: gate valida CONFORMIDADE (existe? completo? vivo?), não UTILIDADE humana.
+  Para utilidade, o mínimo permanece: exposição pública + uso real reportado no ENVIADOS.
