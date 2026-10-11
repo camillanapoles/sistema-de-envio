@@ -29,3 +29,5 @@ Anti-padrões detectados no histórico (checklist de não-repetição):
 [ ] recomeço com projeto novo antes de enviar este
 NOTA: gate CI que você pode editar livremente depois = validação maleável.
       O gate congelado é o que o transforma em juiz, não em espelho.
+
+## 5b. VALIDADOR: ____ (quebrado propositalmente para teste)
