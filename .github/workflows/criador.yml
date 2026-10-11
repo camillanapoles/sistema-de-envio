@@ -1,0 +1,36 @@
+name: Criar Projeto (com portão WIP)
+on: {issue_comment: {types: [created]}}
+
+permissions: {issues: write, contents: read}
+
+jobs:
+  criar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guarda do comando
+        id: guarda
+        if: ${{ startsWith(github.event.comment.body, '/novo-projeto ') && github.actor == 'camillanapoles' }}
+        run: echo ativo
+      - name: Verificar portão e criar repositório
+        if: ${{ steps.guarda.outcome == 'success' }}
+        env:
+          BT: ${{ secrets.BUILDER_TOKEN }}
+          GT: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          CORPO: ${{ github.event.comment.body }}
+        run: |
+          H="Authorization: token $GT"
+          A="Accept: application/vnd.github+json"
+          reply() { curl -sf -X POST -H "$H" -H "$A" "https://api.github.com/repos/$REPO/issues/$ISSUE/comments" -d "$(jq -n --arg b "$1" '{body: $b}')"; }
+          NOME=$(echo "$CORPO" | sed 's/^\/novo-projeto //' | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9-' '-' | sed 's/^-\|-$//g' | cut -c1-60)
+          echo "$NOME" | grep -qE '^[a-z0-9][a-z0-9-]*$' || { reply "Nome inválido. Use: /novo-projeto nome-do-projeto"; exit 0; }
+          curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/contents/01-PORTFOLIO-REAL.md" | jq -r '.content' | base64 -d > p.md 2>/dev/null || true
+          VOO=0
+          [ -f p.md ] && VOO=$(awk '/^## EM VOO/,/^## FILA/' p.md | grep -E '^\| [^ |]' | grep -v "Artefato" | wc -l | tr -d ' ')
+          if [ "$VOO" != "0" ]; then reply "PORTÃO FECHADO (WIP=1): existe artefato em voo sem envio. Entregue ao validador ou dê funeral explícito antes de criar projeto novo. Regra: 05-GOVERNANCA.md"; exit 0; fi
+          if [ -z "$BT" ]; then reply "Secret BUILDER_TOKEN não configurado. Crie um token classic (marque só 'repo') em github.com/settings/tokens e adicione em Settings → Secrets and variables → Actions → New repository secret, nome: BUILDER_TOKEN."; exit 0; fi
+          RES=$(curl -s -o resp.json -w "%{http_code}" -X POST -H "Authorization: token $BT" -H "$A" https://api.github.com/user/repos -d "{\"name\": \"$NOME\", \"description\": \"projeto com contrato de envio\", \"private\": false, \"has_issues\": true}")
+          if [ "$RES" != "201" ]; then reply "Falha ao criar repositório (HTTP $RES): $(jq -r '.message // .' resp.json 2>/dev/null)"; exit 0; fi
+          URL=$(jq -r '.html_url' resp.json)
+          reply "Repositório criado: $URL — Próximos passos: (1) preencher 00-CONTRATO-DE-ENVIO.md com campo 5, (2) abrir issue com label kimi-gate para eu estruturar o conteúdo."
