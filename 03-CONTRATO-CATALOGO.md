@@ -17,9 +17,12 @@ estado de cada agente. Entregue em 2026-10-11.
 - Reimplementação dos agentes (isso são projetos futuros, cada um com seu contrato)
 - Qualquer "v2.0" antes de 3 artefatos-objeto validados (regra do Grupo A)
 
-## 5. VALIDADOR EXTERNO: ______________________  (NOME OBRIGATÓRIO)
-   Data combinada para leitura: ____/____/______
-   ⚠️ Este campo em branco = ciclo aberto. Preencher hoje.
+## 5. GATE CI (OPÇÃO A): pipeline validador.yml
+   Checagens objetivas: contrato presente, campo 5 preenchido, links vivos.
+   Gate congelado em 2026-10-11. Falha = REJECT + auto-invocação /kimi na fila.
+   Alteração do gate exige WAL + re-aprovação (05-GOVERNANCA, ERRO 3).
+   + Exposição pública permanente: https://github.com/camillanapoles/sistema-de-envio
+   Data: validação contínua (a cada push)
 
 ## 6. ENDEREÇO DE PERSISTÊNCIA
    https://github.com/camillanapoles/sistema-de-envio/blob/main/CATALOGO-AGENTES-SDK.md
