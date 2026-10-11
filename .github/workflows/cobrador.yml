@@ -8,5 +8,13 @@ jobs:
   cobrar:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping
-        run: echo ok
+      - name: Cobrança semanal
+        if: github.event.schedule == '0 9 * * 1' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "COBRANÇA SEMANAL: artefato enviado?" --body "Perguntas obrigatórias (responda por escrito nesta issue): 1) O artefato em voo foi enviado ao validador? sim/não 2) Se não: o que exatamente foi adiado e por quê? 3) A data de envio continua realista? Lembrete: adiar é dado, não vergonha. Não responder é omissão."
+      - name: Métrica mensal
+        if: github.event.schedule == '0 9 1 * *'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "MÉTRICA MENSAL: portfólio real" --body "Conte e registre: quantos artefatos EXISTEM FORA DO SEU CONTROLE este mês? Atualize 01-PORTFOLIO-REAL.md (seção ENVIADOS). Zero é um dado — registre o zero com a mesma honestidade."
