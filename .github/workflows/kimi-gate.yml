@@ -5,32 +5,7 @@ permissions: {issues: write}
 
 jobs:
   hook:
-    if: ${{ (github.event_name == 'issues' && github.event.label.name == 'kimi-gate') || (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/kimi ') && github.event.comment.user.type != 'Bot') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Registrar entrada WAL e enfileirar
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE: ${{ github.event.issue.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          BODY=$(jq -n --arg ts "$TS" \
-            --arg evento "${{ github.event_name }}" \
-            --arg ator "${{ github.actor }}" \
-            --arg num "$ISSUE" \
-            --arg payload "${{ github.event.comment.body }}" \
-            '{body: ("## WAL-ENTRY [" + $ts + "]
-- evento: " + $evento + "
-- ator: " + $ator + "
-- issue: #" + $num + "
-- fila: kimi
-- status: AGUARDANDO_KIMI
-
----
-### PAYLOAD
-" + ($payload // "(via label kimi-gate)"))}')
-          curl -sf -X POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE/comments" -d "$BODY"
-          curl -sf -X POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE/labels" -d '{"labels":["fila-kimi"]}'
+      - name: Ping
+        run: echo ok
