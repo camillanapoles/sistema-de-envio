@@ -1,0 +1,28 @@
+name: Comando Status
+on: {issue_comment: {types: [created]}}
+
+permissions: {issues: write, contents: read}
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guarda
+        id: guarda
+        if: ${{ startsWith(github.event.comment.body, '/status') }}
+        run: echo ativo
+      - name: Responder com raio-X
+        if: ${{ steps.guarda.outcome == 'success' }}
+        env:
+          GT: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          H="Authorization: token $GT"
+          A="Accept: application/vnd.github+json"
+          reply() { curl -sf -X POST -H "$H" -H "$A" "https://api.github.com/repos/$REPO/issues/$ISSUE/comments" -d "$(jq -n --arg b "$1" '{body: $b}')"; }
+          curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/contents/01-PORTFOLIO-REAL.md" | jq -r '.content' | base64 -d > p.md 2>/dev/null || true
+          VOO=$(awk '/^## EM VOO/,/^## FILA/' p.md 2>/dev/null | grep -E '^\| [^ |]' | grep -v "Artefato" | wc -l | tr -d ' ')
+          EV=$(awk '/^## ENVIADOS/,/^## EM VOO/' p.md 2>/dev/null | grep -E '^\| [^ |]' | grep -v "Artefato" | wc -l | tr -d ' ')
+          ABERTAS=$(curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/issues?state=open" | jq length)
+          reply "## STATUS DO SISTEMA\n\n- artefatos ENVIADOS: $EV\n- EM VOO (WIP=1): $VOO\n- issues abertas: $ABERTAS\n\nComandos: /kimi <pedido> | /novo-projeto <nome> | /status"
