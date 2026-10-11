@@ -15,9 +15,15 @@ CORREÇÃO: Contrato de sobrevivência do artefato.
 - Este repositório é a casa oficial; sessões são oficinas, nunca o depósito.
 
 ## ERRO 3 — Ausência de juiz externo
-CORREÇÃO: Validador obrigatório + exposição pública mínima.
-- Toda entrega: (a) link público OU (b) validador humano nomeado com data.
-- Auto-validação (PQMS próprio, auto-nota) é formalmente inválida como "done".
+CORREÇÃO: Validação em dois níveis, gate congelado.
+- NÍVEL 1 (autônomo, CI/CD): gate objetivo definido ANTES da construção,
+  executado a cada push. Falha = REJECT automático + issue /kimi (diagnóstico
+  entra na fila com bundling de correção obrigatório).
+- NÍVEL 2 (exposição): link público permanente — mínimo inegociável.
+- CLÁUSULA ANTI-CIRCUNVENÇÃO: gate congelado após aprovação do contrato.
+  Alterá-lo exige entrada WAL + re-aprovação. Gate editável livremente =
+  validação maleável = o ERRO 3 de volta com roupas novas.
+- Auto-nota (PQMS próprio) continua formalmente INVÁLIDA como done.
 
 ## ERRO 4 — Meta-evitação (sistemas-meta como fuga do trabalho-objeto)
 CORREÇÃO: Regra da bootstrap concreta.
