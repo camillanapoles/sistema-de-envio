@@ -1,0 +1,29 @@
+name: Auditor de Conclusão
+on: {workflow_dispatch: {}, schedule: [{cron: '0 10 * * 2'}]}
+
+permissions: {issues: write, contents: read}
+
+jobs:
+  auditar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auditar e publicar relatório
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          H="Authorization: token $TOKEN"
+          A="Accept: application/vnd.github+json"
+          curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/contents/03-CONTRATO-CATALOGO.md" -o c.json || true
+          if [ -s c.json ]; then jq -r '.content' c.json | base64 -d > contrato.md 2>/dev/null || true; fi
+          curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/contents/01-PORTFOLIO-REAL.md" -o p.json || true
+          if [ -s p.json ]; then jq -r '.content' p.json | base64 -d > portfolio.md 2>/dev/null || true; fi
+          FILA=$(curl -sf -H "$H" -H "$A" "https://api.github.com/repos/$REPO/issues?labels=fila-kimi&state=open" | jq length)
+          if grep -q "VALIDADOR EXTERNO: _" contrato.md 2>/dev/null; then V="PENDENTE (campo 5 em branco)"; else V="OK"; fi
+          if [ -f portfolio.md ]; then
+            EV=$(awk '/^## ENVIADOS/,/^## EM VOO/' portfolio.md | grep -E '^\| [^ |]' | grep -v "Artefato" | wc -l | tr -d ' ')
+          else EV=0; fi
+          if [ "$EV" = "0" ]; then PORTAO="FECHADO: proibido novo projeto (WIP=1)"; else PORTAO="ABERTO com ressalvas"; fi
+          BODY=$(jq -n --arg v "$V" --arg e "$EV" --arg f "$FILA" --arg p "$PORTAO" \
+            '{title: "AUDITORIA DE CONCLUSÃO", body: ("## Auditoria automática\n\n- contrato (campo 5 validador): " + $v + "\n- artefatos em ENVIADOS: " + $e + "\n- itens na fila kimi: " + $f + "\n- portão de novos projetos: " + $p + "\n\nGerado pelo Auditor de Conclusão.")}')
+          curl -sf -X POST -H "$H" -H "$A" "https://api.github.com/repos/$REPO/issues" -d "$BODY" | jq '{numero: .number, url: .html_url}'
