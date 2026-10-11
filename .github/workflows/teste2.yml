@@ -1,7 +1,0 @@
-name: teste2
-on: {workflow_dispatch: {inputs: {nota: {required: false, description: teste}}}, schedule: [{cron: '30 14 11 10 *'}]}
-jobs:
-  oi:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ok
