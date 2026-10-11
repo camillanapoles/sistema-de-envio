@@ -1,0 +1,41 @@
+name: Validador CI (gate objetivo)
+on: {push: {}, pull_request: {}, workflow_dispatch: {}}
+
+permissions: {issues: write, contents: read}
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    env:
+      CONTRACT: 00-CONTRATO-DE-ENVIO.md
+    steps:
+      - uses: actions/checkout@v4
+      - name: Executar checagens do gate
+        id: checagem
+        run: |
+          FALHAS=""
+          [ -f "$CONTRACT" ] || FALHAS="$FALHAS; contrato ausente ($CONTRACT)"
+          if [ -f "$CONTRACT" ]; then
+            grep -q "VALIDADOR.*_" "$CONTRACT" && FALHAS="$FALHAS; campo 5 (validador) em branco"
+            grep -oE 'https://[^ )"]+' "$CONTRACT" | sort -u > links.txt || true
+            while read -r u; do
+              curl -sf -o /dev/null -m 10 "$u" || FALHAS="$FALHAS; link morto: $u"
+            done < links.txt
+          fi
+          if [ -n "$FALHAS" ]; then
+            echo "GATE RESULT: REJECT$FALHAS" | tee resultado.txt
+            echo "falhas=${FALHAS#; }" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "GATE RESULT: APPROVE" | tee resultado.txt
+      - name: Em REJECT: auto-invocar Kimi
+        if: ${{ failure() }}
+        env:
+          GT: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          RES=$(cat resultado.txt 2>/dev/null || echo "GATE REJECT")
+          BODY=$(jq -n --arg r "$RES" --arg sha "$SHA" '{title: ("GATE REJECT: " + $sha[0:7]), body: ("/kimi o gate CI reprovou o push " + $sha + ". Diagnóstico: " + $r + ". Proponha correção mínima e agenda-a nesta mesma issue (regra: bundling diagnóstico-correção).")}')
+          curl -sf -X POST -H "Authorization: token $GT" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/issues" -d "$BODY"
