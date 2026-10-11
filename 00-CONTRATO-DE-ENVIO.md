@@ -31,3 +31,5 @@ NOTA: gate CI que você pode editar livremente depois = validação maleável.
       O gate congelado é o que o transforma em juiz, não em espelho.
 
 ## 5b. VALIDADOR: ____ (quebrado propositalmente para teste)
+
+## 5c. VALIDADOR: ____
